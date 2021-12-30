@@ -3,7 +3,6 @@
 # Input: initial coordinates, length (km) to East and South
 # Source: https://docs.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system?redirectedfrom=MSDN
 
-
 import math
 from PIL import Image
 import io
@@ -17,6 +16,8 @@ import math
 # dim: Map Width and Height (pixels)	
 # res: Ground Resolution (meters / pixel)	
 # scale: Map Scale (at 96 dpi)  1:XX
+
+TILEDIM = 256
 DATA = {
     1:	{'dim':	512,	    'res':	78271.5170	,'scale':	 295829355.45},
     2:	{'dim':	1024,	    'res':	39135.7585	,'scale':	 147914677.73},
@@ -43,7 +44,7 @@ DATA = {
     23:	{'dim':	2147483648,	'res':	0.0187	    ,'scale':	 70.53}
     }
 
-def clscreen():
+def clrScreen():
     print(chr(27)+'[2j')
     print('\033c')
     print('\x1bc')
@@ -77,41 +78,38 @@ def tiles2quad(tileX, tileY):
     binX = f'{tileX:b}'
     binY = f'{tileY:b}'
 
-    num = max(len(binX),len(binY))
+    num = max(len(binX),len(binY)) # Force same binary length representation (10, 100)->(010,100)
     binX = f'{tileX:0{num}b}'
     binY = f'{tileY:0{num}b}'
    
-    # Interleave binary representations
-    res = "".join(i + j for i, j in zip(binY, binX))
+    res = "".join(i + j for i, j in zip(binY, binX)) # Interleave binary representations
 
-    quadkey = int(res, 2)
-    quadkey = num2base(quadkey, 4)
+    quadkey = int(res, 2) # To binary
+    quadkey = num2base(quadkey, 4) # To base-4
 
     return quadkey
 
 def getImgs(qList):
 
-    def sParam(params):
+    def sParam(params): # Http param string
         string = '?'
-        for p in params.keys():
-            string += f'{p}={params[p]}&'
+        for k in params.keys():
+            string += f'{k}={params[k]}&'
         return string[:-1]
 
-    imList = {}
+    imCollection = {}
  
-   
-
     async def get(q, session):
         # url = f'https://t0.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{q[1]}'
         # params= {
-            # 'mkt': 'es-AR',
-            # 'ur': 'ar',
-            # 'it': 'A,G,L,LA',
-            # 'shading': 't',
-            # 'og': '1677',
-            # 'n': 'z',
-            # 'o': 'webp'
-            # }
+        #     'mkt': 'es-AR',
+        #     'ur': 'ar',
+        #     'it': 'A,G,L,LA',
+        #     'shading': 't',
+        #     'og': '1677',
+        #     'n': 'z',
+        #     'o': 'webp'
+        #     }
 
         url = f'https://t0.ssl.ak.tiles.virtualearth.net/tiles/a{q[1]}.jpeg'
         params= {    
@@ -119,24 +117,21 @@ def getImgs(qList):
             'n':'z'
         }
 
-
         url += sParam(params)
 
-        async with session.get(url=url) as response:
+        async with session.get(url=url) as response: # Get tile
             resp = await response.read()
 
-            in_memory_file = io.BytesIO(resp)
-            im = Image.open(in_memory_file)
-            imList[q[0]] = im
+            inMemory = io.BytesIO(resp)
+            imCollection[q[0]] = Image.open(inMemory) # Save tile with index
 
+            downImgs = len(imCollection) # Downloaded images
+            totalImgs = len(qList) # Total images
             
-            print(f"Image {len(imList)}/{len(qList)} downloaded ({100*len(imList)/len(qList):.1f}%)")
-            if len(imList) % 50  == 0:
-                clscreen()
-          
-                
+            print(f"Image {downImgs}/{totalImgs} downloaded ({100*downImgs/totalImgs:.1f}%)")
             
-            # Save with index since it's async
+            # if len(imCollection) % 50  == 0: 
+            #     clrScreen()
 
     async def main(qs):
         async with aiohttp.ClientSession() as session:
@@ -144,76 +139,71 @@ def getImgs(qList):
 
     start = time.time()
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy()) # For windows
-    asyncio.run(main(qList))
+    asyncio.run(main(qList)) # Run downloads
     end = time.time()
 
     print(f"\nTook {end - start:.4f} seconds to download {len(qList)} tiles.")
     print(f"{(end - start)/len(qList):.4f} seconds per tile.")
-    return imList
+
+    return imCollection
 
 def main(lat, lon, kmX, kmY, level, filename="bing_map_pull"):
+    dimX = kmX*1000/DATA[level]['res']
+    dimY = kmY*1000/DATA[level]['res']
     
-    totPx = (kmX*1000/DATA[level]['res'])*(kmY*1000/DATA[level]['res'])
-    ans = "y"
+    totPx = (dimX)*(dimY) # Total amount pixels
     
-    if totPx >= 10000*10000:
-        ans = input(f"WARNING: Image is {kmX*1000/DATA[level]['res']:.0f}x{kmY*1000/DATA[level]['res']:.0f} px.\nContinue? (Y|N) ")
-    if ans in ["n","N"]:
-        return False
+    print(f"WARNING: Image is {dimX:.0f}x{dimY:.0f} px")
+    
+    cTileX, cTileY = coo2tiles(lat, lon, level) # Get reference tile
 
-    else:
-                
+    KMPERPIXEL = DATA[level]['res']/1000
+    pixelsX  = kmX/KMPERPIXEL # Get total image width
+    pixelsY  = kmY/KMPERPIXEL # Get total image height
 
-        cTileX, cTileY = coo2tiles(lat, lon, level)
+    numTilesX = math.floor(pixelsX/TILEDIM) # Num of tiles to X (East)
+    numTilesY = math.floor(pixelsY/TILEDIM) # Num of tiles to y (South)
 
-        KMPERPIXEL = DATA[level]['res']/1000
-        pixelsX  = kmX/KMPERPIXEL
-        pixelsY  = kmY/KMPERPIXEL
+    qArray=[] 
+    i=0
+    for ty in range(cTileY, cTileY+numTilesY):
+        for tx in range(cTileX, cTileX+numTilesX):
+            q = tiles2quad(tx, ty)
+            qArray.append([i,q]) # Map tiles index and quadkey
+            i+=1
+            
+    imArray = getImgs(qArray) # Get images
 
-        numTilesX = math.floor(pixelsX/256)
-        numTilesY = math.floor(pixelsY/256)
+    newIm = Image.new('RGB', (numTilesX*TILEDIM, numTilesY*TILEDIM))
+    
+    yOffset = 0
+    xOffset = 0
+    rowIdx = 0
 
-        qArray=[]
-        i=0
-        for ty in range(cTileY, cTileY+numTilesY):
-            for tx in range(cTileX, cTileX+numTilesX):
-                q = tiles2quad(tx, ty)
-                qArray.append([i,q])
-                i+=1
-                
-        imArray = getImgs(qArray)
+    # Compile image
+    for i in range(len(imArray)):
+        im = imArray[i]
+        if rowIdx >= numTilesX:
+            rowIdx = 0
+            yOffset += im.size[1]
+            xOffset = 0
 
-        new_im = Image.new('RGB', (numTilesX*256, numTilesY*256))
-        
-        y_offset = 0
-        x_offset = 0
-        rowIdx = 0
+        newIm.paste(im, (xOffset, yOffset))
+        rowIdx += 1
+        xOffset += im.size[0]
 
-        for i in range(len(imArray)):
-            im = imArray[i]
-            if rowIdx >= numTilesX:
-                rowIdx = 0
-                y_offset += im.size[1]
-                x_offset = 0
+    newIm.save(filename + ".png" )
+    # newIm.show()
 
-            new_im.paste(im, (x_offset, y_offset))
-            rowIdx += 1
-            x_offset += im.size[0]
+    print(f'\nGround Resolution (m/px): {DATA[level]["res"]}')
+    print(f'Map Width (px): {numTilesX*TILEDIM}')
+    print(f'Map Height (px): {numTilesY*TILEDIM}')
+    print(f'Map Scale (at 96 dpi):  1:{DATA[level]["scale"]}')
+    print(f'Zoom level: {level}')
 
-        new_im.save(filename + ".jpg" )
-        # new_im.show()
+    print(f'\nSaving....')
 
-        
-        print(f'\nGround Resolution (m/px): {DATA[level]["res"]}')
-        print(f'Map Width (px): {numTilesX*256}')
-        print(f'Map Height (px): {numTilesY*256}')
-        print(f'Map Scale (at 96 dpi):  1:{DATA[level]["scale"]}')
-        print(f'Zoom level: {level}')
-
-        print(f'\nSaving....')
-
-
-    return new_im
+    return newIm
 
 if __name__ == "__main__":
 
@@ -230,5 +220,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     main(args.lat, args.lon, args.e, args.s, args.level, args.filename)
-
-    
