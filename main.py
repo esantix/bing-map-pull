@@ -3,12 +3,10 @@
 # Input: initial coordinates, length (km) to East and South
 # Source: https://docs.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system?redirectedfrom=MSDN
 
-import math
 from PIL import Image
 import io
 import asyncio
 import aiohttp
-import io
 import time
 import math
 
