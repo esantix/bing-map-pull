@@ -22,29 +22,29 @@ SUBSAMPLING = -1
 QUALITY = 100
 
 DATA = {
-    1:	{'dim':	512,	    'res':	78271.5170, 'scale':	 295829355.45},
-    2:	{'dim':	1024,	    'res':	39135.7585, 'scale':	 147914677.73},
-    3:	{'dim':	2048,	    'res':	19567.8792, 'scale':	 73957338.86},
-    4:	{'dim':	4096,	    'res':	9783.9396, 'scale':	 36978669.43},
-    5:	{'dim':	8192,	    'res':	4891.9698, 'scale':	 18489334.72},
-    6:	{'dim':	16384,	    'res':	2445.9849, 'scale':	 9244667.36},
-    7:	{'dim':	32768,	    'res':	1222.9925, 'scale':	 4622333.68},
-    8:	{'dim':	65536,	    'res':	611.4962, 'scale':	 2311166.84},
-    9:	{'dim':	131072,	    'res':	305.7481, 'scale':	 1155583.42},
-    10:	{'dim':	262144,	    'res':	152.8741, 'scale':	 577791.71},
-    11:	{'dim':	524288,	    'res':	76.4370, 'scale':	 288895.85},
-    12:	{'dim':	1048576,	'res':	38.2185, 'scale':	 144447.93},
-    13:	{'dim':	2097152,	'res':	19.1093, 'scale':	 72223.96},
-    14:	{'dim':	4194304,	'res':	9.5546, 'scale':	 36111.98},
-    15:	{'dim':	8388608,	'res':	4.7773, 'scale':	 18055.99},
-    16:	{'dim':	16777216,	'res':	2.3887, 'scale':	 9028.00},
-    17:	{'dim':	33554432,	'res':	1.1943, 'scale':	 4514.00},
-    18:	{'dim':	67108864,	'res':	0.5972, 'scale':	 2257.00},
-    19:	{'dim':	134217728,	'res':	0.2986, 'scale':	 1128.50},
-    20:	{'dim':	268435456,	'res':	0.1493, 'scale':	 564.25},
-    21:	{'dim':	536870912,	'res':	0.0746, 'scale':	 282.12},
-    22:	{'dim':	1073741824,	'res':	0.0373, 'scale':	 141.06},
-    23:	{'dim':	2147483648,	'res':	0.0187, 'scale':	 70.53}
+    1: {'dim': 512, 'res': 78271.5170, 'scale': 295829355.45},
+    2: {'dim': 1024, 'res': 39135.7585, 'scale': 147914677.73},
+    3: {'dim': 2048, 'res': 19567.8792, 'scale': 73957338.86},
+    4: {'dim': 4096, 'res': 9783.9396, 'scale': 36978669.43},
+    5: {'dim': 8192, 'res': 4891.9698, 'scale': 18489334.72},
+    6: {'dim': 16384, 'res': 2445.9849, 'scale': 9244667.36},
+    7: {'dim': 32768, 'res': 1222.9925, 'scale': 4622333.68},
+    8: {'dim': 65536, 'res': 611.4962, 'scale': 2311166.84},
+    9: {'dim': 131072, 'res': 305.7481, 'scale': 1155583.42},
+    10: {'dim': 262144, 'res': 152.8741, 'scale': 577791.71},
+    11: {'dim': 524288, 'res': 76.4370, 'scale': 288895.85},
+    12: {'dim': 1048576, 'res': 38.2185, 'scale': 144447.93},
+    13: {'dim': 2097152, 'res': 19.1093, 'scale': 72223.96},
+    14: {'dim': 4194304, 'res': 9.5546, 'scale': 36111.98},
+    15: {'dim': 8388608, 'res': 4.7773, 'scale': 18055.99},
+    16: {'dim': 16777216, 'res': 2.3887, 'scale': 9028.00},
+    17: {'dim': 33554432, 'res': 1.1943, 'scale': 4514.00},
+    18: {'dim': 67108864, 'res': 0.5972, 'scale': 2257.00},
+    19: {'dim': 134217728, 'res': 0.2986, 'scale': 1128.50},
+    20: {'dim': 268435456, 'res': 0.1493, 'scale': 564.25},
+    21: {'dim': 536870912, 'res': 0.0746, 'scale': 282.12},
+    22: {'dim': 1073741824, 'res': 0.0373, 'scale': 141.06},
+    23: {'dim': 2147483648, 'res': 0.0187, 'scale': 70.53}
 }
 
 
@@ -220,18 +220,27 @@ def main(lat, lon, kmX, kmY, level, filename="bing_map_pull"):
 
 if __name__ == "__main__":
 
-    import argparse
+    # import argparse
 
-    parser = argparse.ArgumentParser(description='Bing Maps map pull')
-    parser.add_argument('-e', '--east', required=True, help="Km's to East")
-    parser.add_argument('-s', '--south', required=True, help="Km's to South")
-    parser.add_argument('-x', '--lat', required=True, help="Initial latitude")
-    parser.add_argument('-y', '--lon', required=True, help="Initial longitude")
-    parser.add_argument('-l', '--level', required=False,
-                        default=19, help="Zoom level (1-19). defaults to 19")
-    parser.add_argument('-f', '--filename', required=False,
-                        help="Output filename (without extension)")
+    # parser = argparse.ArgumentParser(description='Bing Maps map pull')
 
-    args = parser.parse_args()
+    # parser.add_argument('-e', '--east', required=True, help="Km's to East")
+    # parser.add_argument('-s', '--south', required=True, help="Km's to South")
+    # parser.add_argument('-x', '--lat', required=True, help="Initial latitude")
+    # parser.add_argument('-y', '--lon', required=True, help="Initial longitude")
+    # parser.add_argument('-l', '--level', required=False,
+    #                     default=19, help="Zoom level (1-19). defaults to 19")
+    # parser.add_argument('-f', '--filename', required=False,
+    #                     help="Output filename (without extension)")
 
-    main(args.lat, args.lon, args.e, args.s, args.level, args.filename)
+    # args = parser.parse_args()
+
+    lat = input("Latitude: ")
+    lon = input("Longitude: ")
+    e = input("Km's to East: ")
+    s = input("Km's to South: ")
+    level = input("Level (1-19): ")
+    filename = "map"
+    
+
+    main(lat, lon, e, s, level, filename)
