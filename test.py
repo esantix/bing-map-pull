@@ -1,10 +1,15 @@
 from main import main
+from PIL import Image
 
 lat = -38.203799 
 lon =  -69.388419 
-e = 1 
-s = 1
-level = 18
 
-main(lat, lon, e, s, level, "test")
+kmsEast = 1000 
+kmSouth = 1000
 
+zoomLevel = 5
+
+main(lat, lon, kmsEast, kmSouth, zoomLevel, "test")
+
+im  = Image.open("test.jpg", mode='r')
+im.show()
