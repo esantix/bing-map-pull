@@ -5,7 +5,6 @@
 # 
 # Source: https://docs.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system?redirectedfrom=MSDN
 
-
 import math
 from PIL import Image
 import io
@@ -14,8 +13,6 @@ import aiohttp
 import io
 import time
 import math
-
-
 
 
 LEVEL = 19
@@ -132,21 +129,23 @@ def main(lat, lon, kmX, kmY):
         x_offset += im.size[0]
 
 
-
     new_im.save('aaa.jpg')
     # new_im.show()
-
 
     return 
 
 if __name__ == "__main__":
+
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Bing Maps map pull')
+    parser.add_argument('-e', '--east', required=True, help="Km's to East")
+    parser.add_argument('-s', '--south', required=True, help="Km's to South")
+    parser.add_argument('-x', '--lat', required=True, help="Initial latitude")
+    parser.add_argument('-y', '--lon', required=True, help="Initial longitude")
+
+    args = parser.parse_args()
     
-    lat = -38.203799
-    lon = -69.388419
-
-    kmX = 5
-    kmY = 5
-
-    main(lat, lon, kmX, kmY)
+    main(args.lat, args.lon, args.e, args.s)
 
     
