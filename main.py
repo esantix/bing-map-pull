@@ -13,10 +13,7 @@ import io
 import time
 import math
 
-
-# Level of Detail:	
-LEVEL = 19 
-
+# Level depending data
 # dim: Map Width and Height (pixels)	
 # res: Ground Resolution (meters / pixel)	
 # scale: Map Scale (at 96 dpi)  1:XX
@@ -191,7 +188,7 @@ def main(lat, lon, kmX, kmY, level, filename="bing_map_pull"):
     print(f'Map Width (px): {numTilesX*256}')
     print(f'Map Height (px): {numTilesY*256}')
     print(f'Map Scale (at 96 dpi):  1:{DATA[level]["scale"]}')
-    print(f'Zoom level: {LEVEL}')
+    print(f'Zoom level: {level}')
 
     return 
 
