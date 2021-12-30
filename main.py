@@ -97,20 +97,29 @@ def getImgs(qList):
             string += f'{p}={params[p]}&'
         return string[:-1]
 
-
     imList = {}
+ 
+   
 
     async def get(q, session):
-        url = f'https://t0.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{q[1]}'
-        params= {
-            'mkt': 'es-AR',
-            'ur': 'ar',
-            'it': 'A,G,L,LA',
-            'shading': 't',
-            'og': '1677',
-            'n': 'z',
-            'o': 'webp'
+        # url = f'https://t0.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{q[1]}'
+        # params= {
+            # 'mkt': 'es-AR',
+            # 'ur': 'ar',
+            # 'it': 'A,G,L,LA',
+            # 'shading': 't',
+            # 'og': '1677',
+            # 'n': 'z',
+            # 'o': 'webp'
+            # }
+
+        url = f'https://t0.ssl.ak.tiles.virtualearth.net/tiles/a{q[1]}.jpeg'
+        params= {    
+            'g':11640,
+            'n':'z'
         }
+
+
         url += sParam(params)
 
         async with session.get(url=url) as response:
@@ -122,7 +131,10 @@ def getImgs(qList):
 
             
             print(f"Image {len(imList)}/{len(qList)} downloaded ({100*len(imList)/len(qList):.1f}%)")
-           
+            if len(imList) % 50  == 0:
+                clscreen()
+          
+                
             
             # Save with index since it's async
 
@@ -140,11 +152,12 @@ def getImgs(qList):
     return imList
 
 def main(lat, lon, kmX, kmY, level, filename="bing_map_pull"):
+    
     totPx = (kmX*1000/DATA[level]['res'])*(kmY*1000/DATA[level]['res'])
     ans = "y"
-    if totPx >= 5120*5120:
-        ans = input(f"WARNING: Image is {kmX*1000/DATA[level]['res']:.0f}x{kmY*1000/DATA[level]['res']:.0f} px.\nContinue? (Y|N) ")
     
+    if totPx >= 10000*10000:
+        ans = input(f"WARNING: Image is {kmX*1000/DATA[level]['res']:.0f}x{kmY*1000/DATA[level]['res']:.0f} px.\nContinue? (Y|N) ")
     if ans in ["n","N"]:
         return False
 
@@ -197,8 +210,10 @@ def main(lat, lon, kmX, kmY, level, filename="bing_map_pull"):
         print(f'Map Scale (at 96 dpi):  1:{DATA[level]["scale"]}')
         print(f'Zoom level: {level}')
 
+        print(f'\nSaving....')
 
-    return True
+
+    return new_im
 
 if __name__ == "__main__":
 
