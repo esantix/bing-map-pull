@@ -4,12 +4,13 @@ from PIL import Image
 lat = -38.203799 
 lon =  -69.388419 
 
-kmsEast = 1000 
-kmSouth = 1000
+kmsEast = 50
+kmSouth = 50
 
-zoomLevel = 5
+zoomLevel = 18
 
-main(lat, lon, kmsEast, kmSouth, zoomLevel, "test")
+done = main(lat, lon, kmsEast, kmSouth, zoomLevel, "test")
 
-im  = Image.open("test.jpg", mode='r')
-im.show()
+if done:
+    im  = Image.open("test.jpg", mode='r')
+    im.show()

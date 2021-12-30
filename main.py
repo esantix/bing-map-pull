@@ -43,7 +43,6 @@ DATA = {
     23:	{'dim':	2147483648,	'res':	0.0187	    ,'scale':	 70.53}
     }
 
-
 def clscreen():
     print(chr(27)+'[2j')
     print('\033c')
@@ -140,57 +139,65 @@ def getImgs(qList):
     print(f"{(end - start)/len(qList):.4f} seconds per tile.")
     return imList
 
-
 def main(lat, lon, kmX, kmY, level, filename="bing_map_pull"):
-
-
-    cTileX, cTileY = coo2tiles(lat, lon, level)
-
-    KMPERPIXEL = DATA[level]['res']/1000
-    pixelsX  = kmX/KMPERPIXEL
-    pixelsY  = kmY/KMPERPIXEL
-
-    numTilesX = math.floor(pixelsX/256)
-    numTilesY = math.floor(pixelsY/256)
-
-    qArray=[]
-    i=0
-    for ty in range(cTileY, cTileY+numTilesY):
-        for tx in range(cTileX, cTileX+numTilesX):
-            q = tiles2quad(tx, ty)
-            qArray.append([i,q])
-            i+=1
-            
-    imArray = getImgs(qArray)
-
-    new_im = Image.new('RGB', (numTilesX*256, numTilesY*256))
+    totPx = (kmX*1000/DATA[level]['res'])*(kmY*1000/DATA[level]['res'])
+    if totPx >= 5120*5120:
+        ans = input(f"WARNING: Image is {kmX*1000/DATA[level]['res']:.0f}x{kmY*1000/DATA[level]['res']:.0f} px.\nContinue? (Y|N) ")
     
-    y_offset = 0
-    x_offset = 0
-    rowIdx = 0
+    if ans in ["n","N"]:
+        return False
 
-    for i in range(len(imArray)):
-        im = imArray[i]
-        if rowIdx >= numTilesX:
-            rowIdx = 0
-            y_offset += im.size[1]
-            x_offset = 0
+    else:
+                
 
-        new_im.paste(im, (x_offset, y_offset))
-        rowIdx += 1
-        x_offset += im.size[0]
+        cTileX, cTileY = coo2tiles(lat, lon, level)
 
-    new_im.save(filename + ".jpg" )
-    # new_im.show()
+        KMPERPIXEL = DATA[level]['res']/1000
+        pixelsX  = kmX/KMPERPIXEL
+        pixelsY  = kmY/KMPERPIXEL
 
-    
-    print(f'\nGround Resolution (m/px): {DATA[level]["res"]}')
-    print(f'Map Width (px): {numTilesX*256}')
-    print(f'Map Height (px): {numTilesY*256}')
-    print(f'Map Scale (at 96 dpi):  1:{DATA[level]["scale"]}')
-    print(f'Zoom level: {level}')
+        numTilesX = math.floor(pixelsX/256)
+        numTilesY = math.floor(pixelsY/256)
 
-    return 
+        qArray=[]
+        i=0
+        for ty in range(cTileY, cTileY+numTilesY):
+            for tx in range(cTileX, cTileX+numTilesX):
+                q = tiles2quad(tx, ty)
+                qArray.append([i,q])
+                i+=1
+                
+        imArray = getImgs(qArray)
+
+        new_im = Image.new('RGB', (numTilesX*256, numTilesY*256))
+        
+        y_offset = 0
+        x_offset = 0
+        rowIdx = 0
+
+        for i in range(len(imArray)):
+            im = imArray[i]
+            if rowIdx >= numTilesX:
+                rowIdx = 0
+                y_offset += im.size[1]
+                x_offset = 0
+
+            new_im.paste(im, (x_offset, y_offset))
+            rowIdx += 1
+            x_offset += im.size[0]
+
+        new_im.save(filename + ".jpg" )
+        # new_im.show()
+
+        
+        print(f'\nGround Resolution (m/px): {DATA[level]["res"]}')
+        print(f'Map Width (px): {numTilesX*256}')
+        print(f'Map Height (px): {numTilesY*256}')
+        print(f'Map Scale (at 96 dpi):  1:{DATA[level]["scale"]}')
+        print(f'Zoom level: {level}')
+
+
+    return True
 
 if __name__ == "__main__":
 
