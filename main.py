@@ -18,6 +18,11 @@ import math
 # scale: Map Scale (at 96 dpi)  1:XX
 
 TILEDIM = 256
+
+# https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#jpeg
+SUBSAMPLING = -1
+QUALITY = 100
+
 DATA = {
     1:	{'dim':	512,	    'res':	78271.5170	,'scale':	 295829355.45},
     2:	{'dim':	1024,	    'res':	39135.7585	,'scale':	 147914677.73},
@@ -128,10 +133,8 @@ def getImgs(qList):
             downImgs = len(imCollection) # Downloaded images
             totalImgs = len(qList) # Total images
             
-            print(f"Image {downImgs}/{totalImgs} downloaded ({100*downImgs/totalImgs:.1f}%)")
-            
-            # if len(imCollection) % 50  == 0: 
-            #     clrScreen()
+            print(f"Image {downImgs}/{totalImgs} downloaded ({100*downImgs/totalImgs:.1f}%)",end="\r")
+
 
     async def main(qs):
         async with aiohttp.ClientSession() as session:
@@ -192,7 +195,7 @@ def main(lat, lon, kmX, kmY, level, filename="bing_map_pull"):
         rowIdx += 1
         xOffset += im.size[0]
 
-    newIm.save(filename + ".png" )
+    newIm.save(filename + ".jpg", format='JPEG', subsampling=SUBSAMPLING, quality=QUALITY)
     # newIm.show()
 
     print(f'\nGround Resolution (m/px): {DATA[level]["res"]}')
