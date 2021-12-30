@@ -8,5 +8,5 @@ kmSouth = 3
 
 zoomLevel = 19
 
-done = main(lat, lon, kmsEast, kmSouth, zoomLevel, "test_10_nosub")
+done = main(lat, lon, kmsEast, kmSouth, zoomLevel, "./data/test_10_nosub")
 
