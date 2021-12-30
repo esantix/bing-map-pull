@@ -141,6 +141,7 @@ def getImgs(qList):
 
 def main(lat, lon, kmX, kmY, level, filename="bing_map_pull"):
     totPx = (kmX*1000/DATA[level]['res'])*(kmY*1000/DATA[level]['res'])
+    ans = "y"
     if totPx >= 5120*5120:
         ans = input(f"WARNING: Image is {kmX*1000/DATA[level]['res']:.0f}x{kmY*1000/DATA[level]['res']:.0f} px.\nContinue? (Y|N) ")
     
