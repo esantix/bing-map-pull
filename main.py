@@ -201,7 +201,7 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--south', required=True, help="Km's to South")
     parser.add_argument('-x', '--lat', required=True, help="Initial latitude")
     parser.add_argument('-y', '--lon', required=True, help="Initial longitude")
-    parser.add_argument('-l', '--level', required=False, default=19, help="Zoom level (1-23). defaults to 19")
+    parser.add_argument('-l', '--level', required=False, default=19, help="Zoom level (1-19). defaults to 19")
     parser.add_argument('-f', '--filename', required=False, help="Output filename (without extension)")
 
     args = parser.parse_args()
