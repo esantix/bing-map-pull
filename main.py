@@ -3,6 +3,10 @@
 # Input: initial coordinates, length (km) to East and South
 # Source: https://docs.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system?redirectedfrom=MSDN
 
+from tkinter import *
+from tkinter import filedialog
+from tkinter.ttk import *
+import tkinter as tk
 from PIL import Image as pimg
 import io
 import asyncio
@@ -108,17 +112,6 @@ def getImgs(qList):
     imCollection = {}
 
     async def get(q, session):
-        # url = f'https://t0.ssl.ak.dynamic.tiles.virtualearth.net/comp/ch/{q[1]}'
-        # params= {
-        #     'mkt': 'es-AR',
-        #     'ur': 'ar',
-        #     'it': 'A,G,L,LA',
-        #     'shading': 't',
-        #     'og': '1677',
-        #     'n': 'z',
-        #     'o': 'webp'
-        #     }
-
         url = f'https://t0.ssl.ak.tiles.virtualearth.net/tiles/a{q[1]}.jpeg'
         params = {
             'g': 11640,
@@ -140,7 +133,7 @@ def getImgs(qList):
                 f"Image {downImgs}/{totalImgs} downloaded ({100*downImgs/totalImgs:.1f}%)")
 
     async def runn(qs):
-       
+
         async with aiohttp.ClientSession() as session:
             await asyncio.gather(*[get(q, session) for q in qs])
 
@@ -156,21 +149,18 @@ def getImgs(qList):
     return imCollection
 
 
-
 def pix2coor(pixelX, pixelY, zoomLevel):
-    lon = pixelX*360/(math.pow(2,zoomLevel)) - 180; 
-    lat = math.asin((math.exp((0.5 - pixelY / math.pow(2,zoomLevel)) * 4 * math.pi) - 1) / (math.exp((0.5 - pixelY / math.pow(2,zoomLevel)) * 4 * math.pi) + 1)) * 180 / math.pi 
+    lon = pixelX*360/(math.pow(2, zoomLevel)) - 180
+    lat = math.asin((math.exp((0.5 - pixelY / math.pow(2, zoomLevel)) * 4 * math.pi) - 1) /
+                    (math.exp((0.5 - pixelY / math.pow(2, zoomLevel)) * 4 * math.pi) + 1)) * 180 / math.pi
 
-    
     return lat, lon
-
 
 
 def main(lat, lon, kmX, kmY, level, filename):
     dimX = kmX*1000/DATA[level]['res']
     dimY = kmY*1000/DATA[level]['res']
 
-    totPx = (dimX)*(dimY)  # Total amount pixels
     tkprint("Downloading image...")
     tkprint(f"Image is {dimX:.0f}x{dimY:.0f} px")
 
@@ -205,8 +195,6 @@ def main(lat, lon, kmX, kmY, level, filename):
     trCoords = pix2coor(cTileX+numTilesX, cTileY, level)
     blCoords = pix2coor(cTileX, cTileY+numTilesY, level)
 
-
-
     tkprint('\nTop-Left coords: ')
     tlcoor = tk.Entry()
     tlcoor.insert(END, f'{tlCoords[0]:.6f}, {tlCoords[1]:.6f}')
@@ -226,8 +214,6 @@ def main(lat, lon, kmX, kmY, level, filename):
     tlcoor = tk.Entry()
     tlcoor.insert(END, f'{blCoords[0]:.6f}, {blCoords[1]:.6f}')
     tlcoor.pack()
-   
-    
 
     # Compile image
     for i in range(len(imArray)):
@@ -255,12 +241,6 @@ def main(lat, lon, kmX, kmY, level, filename):
 
     return newIm
 
-
-import tkinter as tk
-from tkinter.ttk import *
-import time
-from tkinter import filedialog
-from tkinter import *
 
 window = tk.Tk()
 window.geometry("400x650")
@@ -290,67 +270,51 @@ levelEntry.insert(END, "19")
 levelLab.pack()
 levelEntry.pack()
 
-from tkinter import filedialog
+
 def tkprint(string):
     if True:
         aaa = tk.Label(text=string, justify=LEFT).pack(fill='both')
     print(string)
     return
 
+
 def run():
     tkprint("Running...")
     level = int(levelEntry.get())
     cor = corEntry.get().split(" ")
 
-
-
-
-    def browsefunc():
-        filename = filedialog.asksaveasfile(mode='w', defaultextension=".jpeg", initialfile ="Imagen")
-        print(filename.name)
-        return filename.name
-
-
-
-    path = browsefunc()
-    
-    
-    
-    
-    
-    
-    
-    
     kmX = float(kmEentry.get().replace(",", "."))
     kmY = float(kmSentry.get().replace(",", "."))
 
     lat = float(cor[0].replace(",", ".")[:-1])
     lon = float(cor[1].replace(",", "."))
 
+    path = filedialog.asksaveasfile(
+        mode='w', defaultextension=".jpeg", initialfile="Imagen").name
+
     main(lat, lon, kmX, kmY, level, filename=path)
-    
-    
+
     import os
     # window.destroy()
+
     def openImage():
         os.startfile(path, 'open')
         return
     button2 = tk.Button(window, padx=20,
-
-                    pady=8,
-                    text="Open image",
-                    fg="green",
-                    command=openImage)
+                        pady=8,
+                        text="Open image",
+                        fg="green",
+                        command=openImage)
     button2.pack()
 
     return
 
-button = tk.Button(window, padx=20,
 
-                    pady=8,
-                    text="RUN",
-                    fg="blue",
-                    command=run)
+button = tk.Button(window, padx=20,
+                   pady=8,
+                   text="RUN",
+                   fg="blue",
+                   command=run)
 button.pack()
 
 window.mainloop()
