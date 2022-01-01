@@ -321,8 +321,8 @@ def run():
     
     
     
-    kmX = int(kmEentry.get())
-    kmY = int(kmSentry.get())
+    kmX = float(kmEentry.get().replace(",", "."))
+    kmY = float(kmSentry.get().replace(",", "."))
 
     lat = float(cor[0].replace(",", ".")[:-1])
     lon = float(cor[1].replace(",", "."))
