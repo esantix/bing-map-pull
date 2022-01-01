@@ -3,7 +3,7 @@
 # Input: initial coordinates, length (km) to East and South
 # Source: https://docs.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system?redirectedfrom=MSDN
 
-from PIL import Image
+from PIL import Image as pimg
 import io
 import asyncio
 import aiohttp
@@ -46,13 +46,6 @@ DATA = {
     22: {'dim': 1073741824, 'res': 0.0373, 'scale': 141.06},
     23: {'dim': 2147483648, 'res': 0.0187, 'scale': 70.53}
 }
-
-
-def clrScreen():
-    print(chr(27)+'[2j')
-    print('\033c')
-    print('\x1bc')
-    return
 
 
 def num2base(n, b):
@@ -102,6 +95,10 @@ def tiles2quad(tileX, tileY):
 
 def getImgs(qList):
 
+    if len(qList) == 0:
+        tkprint("ERROR: Distances and level combination too small")
+        return False
+
     def sParam(params):  # Http param string
         string = '?'
         for k in params.keys():
@@ -134,22 +131,23 @@ def getImgs(qList):
             resp = await response.read()
 
             inMemory = io.BytesIO(resp)
-            imCollection[q[0]] = Image.open(inMemory)  # Save tile with index
+            imCollection[q[0]] = pimg.open(inMemory)  # Save tile with index
 
             downImgs = len(imCollection)  # Downloaded images
             totalImgs = len(qList)  # Total images
 
             print(
-                f"Image {downImgs}/{totalImgs} downloaded ({100*downImgs/totalImgs:.1f}%)", end="\r")
+                f"Image {downImgs}/{totalImgs} downloaded ({100*downImgs/totalImgs:.1f}%)")
 
-    async def main(qs):
+    async def runn(qs):
+       
         async with aiohttp.ClientSession() as session:
             await asyncio.gather(*[get(q, session) for q in qs])
 
     start = time.time()
     asyncio.set_event_loop_policy(
         asyncio.WindowsSelectorEventLoopPolicy())  # For windows
-    asyncio.run(main(qList))  # Run downloads
+    asyncio.run(runn(qList))  # Run downloads
     end = time.time()
 
     print(f"\nTook {end - start:.4f} seconds to download {len(qList)} tiles.")
@@ -158,13 +156,23 @@ def getImgs(qList):
     return imCollection
 
 
-def main(lat, lon, kmX, kmY, level, filename="bing_map_pull"):
+
+def pix2coor(pixelX, pixelY, zoomLevel):
+    lon = pixelX*360/(math.pow(2,zoomLevel)) - 180; 
+    lat = math.asin((math.exp((0.5 - pixelY / math.pow(2,zoomLevel)) * 4 * math.pi) - 1) / (math.exp((0.5 - pixelY / math.pow(2,zoomLevel)) * 4 * math.pi) + 1)) * 180 / math.pi 
+
+    
+    return lat, lon
+
+
+
+def main(lat, lon, kmX, kmY, level, filename):
     dimX = kmX*1000/DATA[level]['res']
     dimY = kmY*1000/DATA[level]['res']
 
     totPx = (dimX)*(dimY)  # Total amount pixels
-
-    print(f"WARNING: Image is {dimX:.0f}x{dimY:.0f} px")
+    tkprint("Downloading image...")
+    tkprint(f"Image is {dimX:.0f}x{dimY:.0f} px")
 
     cTileX, cTileY = coo2tiles(lat, lon, level)  # Get reference tile
 
@@ -184,12 +192,42 @@ def main(lat, lon, kmX, kmY, level, filename="bing_map_pull"):
             i += 1
 
     imArray = getImgs(qArray)  # Get images
-
-    newIm = Image.new('RGB', (numTilesX*TILEDIM, numTilesY*TILEDIM))
+    if imArray == False:
+        return
+    newIm = pimg.new('RGB', (numTilesX*TILEDIM, numTilesY*TILEDIM))
 
     yOffset = 0
     xOffset = 0
     rowIdx = 0
+
+    tlCoords = pix2coor(cTileX, cTileY, level)
+    brCoords = pix2coor(cTileX+numTilesX, cTileY+numTilesY, level)
+    trCoords = pix2coor(cTileX+numTilesX, cTileY, level)
+    blCoords = pix2coor(cTileX, cTileY+numTilesY, level)
+
+
+
+    tkprint('\nTop-Left coords: ')
+    tlcoor = tk.Entry()
+    tlcoor.insert(END, f'{tlCoords[0]:.6f}, {tlCoords[1]:.6f}')
+    tlcoor.pack()
+
+    tkprint('Top-Right coords: ')
+    tlcoor = tk.Entry()
+    tlcoor.insert(END, f'{trCoords[0]:.6f}, {trCoords[1]:.6f}')
+    tlcoor.pack()
+
+    tkprint('Bottom-Right coords: ')
+    tlcoor = tk.Entry()
+    tlcoor.insert(END, f'{brCoords[0]:.6f}, {brCoords[1]:.6f}')
+    tlcoor.pack()
+
+    tkprint('Bottom-Left coords: ')
+    tlcoor = tk.Entry()
+    tlcoor.insert(END, f'{blCoords[0]:.6f}, {blCoords[1]:.6f}')
+    tlcoor.pack()
+   
+    
 
     # Compile image
     for i in range(len(imArray)):
@@ -203,44 +241,116 @@ def main(lat, lon, kmX, kmY, level, filename="bing_map_pull"):
         rowIdx += 1
         xOffset += im.size[0]
 
-    newIm.save(filename + ".jpg", format='JPEG',
+    newIm.save(filename, format='JPEG',
                subsampling=SUBSAMPLING, quality=QUALITY)
     # newIm.show()
 
-    print(f'\nGround Resolution (m/px): {DATA[level]["res"]}')
-    print(f'Map Width (px): {numTilesX*TILEDIM}')
-    print(f'Map Height (px): {numTilesY*TILEDIM}')
-    print(f'Map Scale (at 96 dpi):  1:{DATA[level]["scale"]}')
-    print(f'Zoom level: {level}')
+    tkprint(f'\nGround Resolution (m/px): {DATA[level]["res"]}')
+    tkprint(f'Map Width (px): {numTilesX*TILEDIM}')
+    tkprint(f'Map Height (px): {numTilesY*TILEDIM}')
+    tkprint(f'Map Scale (at 96 dpi):  1:{DATA[level]["scale"]}')
+    tkprint(f'Zoom level: {level}')
 
-    print(f'\nSaving....')
+    tkprint(f'\nSaving....')
 
     return newIm
 
 
-if __name__ == "__main__":
+import tkinter as tk
+from tkinter.ttk import *
+import time
+from tkinter import filedialog
+from tkinter import *
 
-    # import argparse
+window = tk.Tk()
+window.geometry("400x650")
+window.title('Bing Maps pull')
 
-    # parser = argparse.ArgumentParser(description='Bing Maps map pull')
+corLab = tk.Label(text="Coordinates ( xx,xxx, yy,yyy)")
+corEntry = tk.Entry()
+corEntry.insert(END, "-38,919336, -68,147202")
+corLab.pack()
+corEntry.pack()
 
-    # parser.add_argument('-e', '--east', required=True, help="Km's to East")
-    # parser.add_argument('-s', '--south', required=True, help="Km's to South")
-    # parser.add_argument('-x', '--lat', required=True, help="Initial latitude")
-    # parser.add_argument('-y', '--lon', required=True, help="Initial longitude")
-    # parser.add_argument('-l', '--level', required=False,
-    #                     default=19, help="Zoom level (1-19). defaults to 19")
-    # parser.add_argument('-f', '--filename', required=False,
-    #                     help="Output filename (without extension)")
+kmE = tk.Label(text="Km to East")
+kmEentry = tk.Entry()
+kmEentry.insert(END, "1")
+kmE.pack()
+kmEentry.pack()
 
-    # args = parser.parse_args()
+kmS = tk.Label(text="Km to South")
+kmSentry = tk.Entry()
+kmSentry.insert(END, "1")
+kmS.pack()
+kmSentry.pack()
 
-    lat = input("Latitude: ")
-    lon = input("Longitude: ")
-    e = input("Km's to East: ")
-    s = input("Km's to South: ")
-    level = input("Level (1-19): ")
-    filename = "map"
+levelLab = tk.Label(text="Level (1-19)")
+levelEntry = tk.Entry()
+levelEntry.insert(END, "19")
+levelLab.pack()
+levelEntry.pack()
+
+from tkinter import filedialog
+def tkprint(string):
+    if True:
+        aaa = tk.Label(text=string, justify=LEFT).pack(fill='both')
+    print(string)
+    return
+
+def run():
+    tkprint("Running...")
+    level = int(levelEntry.get())
+    cor = corEntry.get().split(" ")
+
+
+
+
+    def browsefunc():
+        filename = filedialog.asksaveasfile(mode='w', defaultextension=".jpeg", initialfile ="Imagen")
+        print(filename.name)
+        return filename.name
+
+
+
+    path = browsefunc()
     
+    
+    
+    
+    
+    
+    
+    
+    kmX = int(kmEentry.get())
+    kmY = int(kmSentry.get())
 
-    main(lat, lon, e, s, level, filename)
+    lat = float(cor[0].replace(",", ".")[:-1])
+    lon = float(cor[1].replace(",", "."))
+
+    main(lat, lon, kmX, kmY, level, filename=path)
+    
+    
+    import os
+    # window.destroy()
+    def openImage():
+        os.startfile(path, 'open')
+        return
+    button2 = tk.Button(window, padx=20,
+
+                    pady=8,
+                    text="Open image",
+                    fg="green",
+                    command=openImage)
+    button2.pack()
+
+    return
+
+button = tk.Button(window, padx=20,
+
+                    pady=8,
+                    text="RUN",
+                    fg="blue",
+                    command=run)
+button.pack()
+
+window.mainloop()
