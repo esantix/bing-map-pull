@@ -168,3 +168,18 @@ def main(lat, lon, kmX, kmY, level, filename):
 
     return newIm, tlCoords, trCoords, blCoords, brCoords
 
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description='Bing Maps map pull')
+    parser.add_argument('-e', '--east', required=True, help="Km's to East")
+    parser.add_argument('-s', '--south', required=True, help="Km's to South")
+    parser.add_argument('-x', '--lat', required=True, help="Initial latitude")
+    parser.add_argument('-y', '--lon', required=True, help="Initial longitude")
+    parser.add_argument('-l', '--level', required=False, default=19, help="Zoom level (1-19). defaults to 19")
+    parser.add_argument('-f', '--filename', required=False, help="Output filename (.tiff)")
+
+    args = parser.parse_args()
+
+    main(args.lat, args.lon, args.e, args.s, args.level, args.filename)
+
