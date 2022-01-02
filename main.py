@@ -3,16 +3,15 @@
 # Input: initial coordinates, length (km) to East and South
 # Source: https://docs.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system?redirectedfrom=MSDN
 
-from tkinter import *
-from tkinter import filedialog
-from tkinter.ttk import *
-import tkinter as tk
+
 from PIL import Image as pimg
 import io
 import asyncio
 import aiohttp
 import time
 import math
+
+from utils import *
 
 # Level depending data
 # dim: Map Width and Height (pixels)
@@ -52,55 +51,10 @@ DATA = {
 }
 
 
-def num2base(n, b):
-    if n == 0:
-        return [0]
-    digits = []
-    while n:
-        digits.append(str(int(n % b)))
-        n //= b
-    return ''.join(digits[::-1])
-
-
-def coo2tiles(latitude, longitude, level):
-
-    aux = (2**level)
-
-    sinLatitude = math.sin(latitude * math.pi/180)
-
-    pixelX = ((longitude + 180) / 360)*aux
-    pixelY = (0.5 - math.log((1+sinLatitude) /
-              (1-sinLatitude)) / (4 * math.pi))*aux
-
-    tileX = math.floor(pixelX)
-    tileY = math.floor(pixelY)
-
-    return tileX, tileY
-
-
-def tiles2quad(tileX, tileY):
-
-    binX = f'{tileX:b}'
-    binY = f'{tileY:b}'
-
-    # Force same binary length representation (10, 100)->(010,100)
-    num = max(len(binX), len(binY))
-    binX = f'{tileX:0{num}b}'
-    binY = f'{tileY:0{num}b}'
-
-    # Interleave binary representations
-    res = "".join(i + j for i, j in zip(binY, binX))
-
-    quadkey = int(res, 2)  # To binary
-    quadkey = num2base(quadkey, 4)  # To base-4
-
-    return quadkey
-
-
 def getImgs(qList):
 
     if len(qList) == 0:
-        tkprint("ERROR: Distances and level combination too small")
+        print("ERROR: Distances and level combination too small")
         return False
 
     def sParam(params):  # Http param string
@@ -148,21 +102,12 @@ def getImgs(qList):
 
     return imCollection
 
-
-def pix2coor(pixelX, pixelY, zoomLevel):
-    lon = pixelX*360/(math.pow(2, zoomLevel)) - 180
-    lat = math.asin((math.exp((0.5 - pixelY / math.pow(2, zoomLevel)) * 4 * math.pi) - 1) /
-                    (math.exp((0.5 - pixelY / math.pow(2, zoomLevel)) * 4 * math.pi) + 1)) * 180 / math.pi
-
-    return lat, lon
-
-
 def main(lat, lon, kmX, kmY, level, filename):
     dimX = kmX*1000/DATA[level]['res']
     dimY = kmY*1000/DATA[level]['res']
 
-    tkprint("Downloading image...")
-    tkprint(f"Image is {dimX:.0f}x{dimY:.0f} px")
+    print("Downloading image...")
+    print(f"Image is {dimX:.0f}x{dimY:.0f} px")
 
     cTileX, cTileY = coo2tiles(lat, lon, level)  # Get reference tile
 
@@ -195,25 +140,7 @@ def main(lat, lon, kmX, kmY, level, filename):
     trCoords = pix2coor(cTileX+numTilesX, cTileY, level)
     blCoords = pix2coor(cTileX, cTileY+numTilesY, level)
 
-    tkprint('\nTop-Left coords: ')
-    tlcoor = tk.Entry()
-    tlcoor.insert(END, f'{tlCoords[0]:.6f}, {tlCoords[1]:.6f}')
-    tlcoor.pack()
 
-    tkprint('Top-Right coords: ')
-    tlcoor = tk.Entry()
-    tlcoor.insert(END, f'{trCoords[0]:.6f}, {trCoords[1]:.6f}')
-    tlcoor.pack()
-
-    tkprint('Bottom-Right coords: ')
-    tlcoor = tk.Entry()
-    tlcoor.insert(END, f'{brCoords[0]:.6f}, {brCoords[1]:.6f}')
-    tlcoor.pack()
-
-    tkprint('Bottom-Left coords: ')
-    tlcoor = tk.Entry()
-    tlcoor.insert(END, f'{blCoords[0]:.6f}, {blCoords[1]:.6f}')
-    tlcoor.pack()
 
     # Compile image
     for i in range(len(imArray)):
@@ -227,94 +154,17 @@ def main(lat, lon, kmX, kmY, level, filename):
         rowIdx += 1
         xOffset += im.size[0]
 
-    newIm.save(filename, format='JPEG',
+    newIm.save(filename, format='TIFF',
                subsampling=SUBSAMPLING, quality=QUALITY)
     # newIm.show()
 
-    tkprint(f'\nGround Resolution (m/px): {DATA[level]["res"]}')
-    tkprint(f'Map Width (px): {numTilesX*TILEDIM}')
-    tkprint(f'Map Height (px): {numTilesY*TILEDIM}')
-    tkprint(f'Map Scale (at 96 dpi):  1:{DATA[level]["scale"]}')
-    tkprint(f'Zoom level: {level}')
+    print(f'\nGround Resolution (m/px): {DATA[level]["res"]}')
+    print(f'Map Width (px): {numTilesX*TILEDIM}')
+    print(f'Map Height (px): {numTilesY*TILEDIM}')
+    print(f'Map Scale (at 96 dpi):  1:{DATA[level]["scale"]}')
+    print(f'Zoom level: {level}')
 
-    tkprint(f'\nSaving....')
+    print(f'\nSaving....')
 
-    return newIm
+    return newIm, tlCoords, trCoords, blCoords, brCoords
 
-
-window = tk.Tk()
-window.geometry("400x650")
-window.title('Bing Maps pull')
-
-corLab = tk.Label(text="Coordinates ( xx,xxx, yy,yyy)")
-corEntry = tk.Entry()
-corEntry.insert(END, "-38,919336, -68,147202")
-corLab.pack()
-corEntry.pack()
-
-kmE = tk.Label(text="Km to East")
-kmEentry = tk.Entry()
-kmEentry.insert(END, "1")
-kmE.pack()
-kmEentry.pack()
-
-kmS = tk.Label(text="Km to South")
-kmSentry = tk.Entry()
-kmSentry.insert(END, "1")
-kmS.pack()
-kmSentry.pack()
-
-levelLab = tk.Label(text="Level (1-19)")
-levelEntry = tk.Entry()
-levelEntry.insert(END, "19")
-levelLab.pack()
-levelEntry.pack()
-
-
-def tkprint(string):
-    if True:
-        aaa = tk.Label(text=string, justify=LEFT).pack(fill='both')
-    print(string)
-    return
-
-
-def run():
-    tkprint("Running...")
-    level = int(levelEntry.get())
-    cor = corEntry.get().split(" ")
-
-    kmX = float(kmEentry.get().replace(",", "."))
-    kmY = float(kmSentry.get().replace(",", "."))
-
-    lat = float(cor[0].replace(",", ".")[:-1])
-    lon = float(cor[1].replace(",", "."))
-
-    path = filedialog.asksaveasfile(
-        mode='w', defaultextension=".jpeg", initialfile="Imagen").name
-
-    main(lat, lon, kmX, kmY, level, filename=path)
-
-    import os
-    # window.destroy()
-
-    def openImage():
-        os.startfile(path, 'open')
-        return
-    button2 = tk.Button(window, padx=20,
-                        pady=8,
-                        text="Open image",
-                        fg="green",
-                        command=openImage)
-    button2.pack()
-
-    return
-
-
-button = tk.Button(window, padx=20,
-                   pady=8,
-                   text="RUN",
-                   fg="blue",
-                   command=run)
-button.pack()
-
-window.mainloop()
