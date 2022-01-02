@@ -8,11 +8,7 @@ Source: https://docs.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system
 
 ## Usage example (Script)
 
-    python main.py \
-    --lat -38.203799 \
-    --lon -69.388419 \
-    --east = 5 \
-    --south = 5
+    python main.py   --lat -38.203799 --lon -69.388419  --east 5 --south 5
 
 ## Usage example (Gui)
     python gui.py
