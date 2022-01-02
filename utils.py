@@ -4,11 +4,6 @@
 # Source: https://docs.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system?redirectedfrom=MSDN
 
 
-from PIL import Image as pimg
-import io
-import asyncio
-import aiohttp
-import time
 import math
 
 
