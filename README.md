@@ -17,4 +17,9 @@ Source: https://docs.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system
 ## Usage example (Gui)
     python gui.py
 
+## Compile portable .exe
+    pyinstaller -F gui.py
+
+
+## Credits
 Author: Santiago Echevarria (santiago93echevarria@gmail.com)
